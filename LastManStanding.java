@@ -21,6 +21,7 @@ public class LastManStanding {
     ArrayList<Cell> cells = new ArrayList<Cell>();
     ArrayList<Cell> creatureCells = new ArrayList<Cell>();
     ArrayList<String> deathLog = new ArrayList<String>();
+    String blankLine = new String ("                                                                               "); // HACK
 
     int turnNumber = 1;
     int numRows = 10;
@@ -217,12 +218,6 @@ public class LastManStanding {
 
                   do { // discover a valid move for this cell
 
-                			//csi.cls();
-                			//csi.print(x,y, '@', CSIColor.WHITE);
-                			//csi.print(x,y, 'H', CSIColor.CYAN);
-                			//csi.print(x,y, "HELP", CSIColor.CYAN);
-                			//csi.print(x+1,y+1, "HELP", CSIColor.CYAN);
-
                 			dir = csi.inkey();
                 			if(dir.isUpArrow()){
                 				cm = Creature.Movement.UP;
@@ -287,12 +282,25 @@ public class LastManStanding {
                       }
                       // add any deaths to our DeathLog array List
                       if (!cellElement.getCreature().getIsAlive()) {
-                        deathLog.add(String.format("%s Died on turn %d at the hands of %s",
-                          cellElement.getCreature().getName(), turnNumber, cells.get(listIndex).getCreature().getName()));
+                        csi.flash(ConsoleSystemInterface.RED);
+                        String death = String.format("%s Died on turn %d at the hands of %s",
+                        cellElement.getCreature().getName(), turnNumber, cells.get(listIndex).getCreature().getName());
+                        deathLog.add(death);
+
+                        csi.print((SCREEN_WIDTH/2) - (death.length()/2), SCREEN_HEIGHT-5, death, CSIColor.SPRING_GREEN);
+                        csi.refresh();
+                        csi.inkey();
+                        csi.print(0, SCREEN_HEIGHT-5, blankLine, CSIColor.SPRING_GREEN);
                       }
                       if (!cells.get(listIndex).getCreature().getIsAlive() ) {
-                        deathLog.add(String.format("%s Died on turn %d at the hands of %s",
-                          cells.get(listIndex).getCreature().getName(), turnNumber, cellElement.getCreature().getName()));
+                        csi.flash(ConsoleSystemInterface.RED);
+                        String death = String.format("%s Died on turn %d at the hands of %s",
+                        cells.get(listIndex).getCreature().getName(), turnNumber, cellElement.getCreature().getName());
+                        deathLog.add(death);
+                        csi.print((SCREEN_WIDTH/2) - (death.length()/2), SCREEN_HEIGHT-5, death, CSIColor.SPRING_GREEN);
+                        csi.refresh();
+                        csi.inkey();
+                        csi.print(0, SCREEN_HEIGHT-5, blankLine, CSIColor.SPRING_GREEN);
                       }
                     }
                 } else {
@@ -562,16 +570,29 @@ public class LastManStanding {
     }
 
     public static void displayUserStats(ConsoleSystemInterface csi, String name, int turn, int health, int agility, int strength, int luck) {
-      String status1 = new String(String.format("Hero   : %s", name));
-      String status2 = new String(String.format("Turn   : %d", turn));
-      String status3 = new String(String.format("Health : %d", health));
-      String status4 = new String(String.format("A %d: S : %d, L : %d", agility, strength, luck));
+      String status1 = new String("Hero   : ");
+      String status2 = new String("Turn   : ");
+      String status3;
+      String statusHealth;
+      status3 = new String("Health : ");
+      if (health > 0) {
+        statusHealth = new String(String.format("%s  ", health));
+      } else {
+        statusHealth = new String("You died.");
+      }
+      String status4 = new String(String.format("A(%d): S(%d) L(%d)", agility, strength, luck));
 
       // position ... bottom LEFT
-      csi.print(5, SCREEN_HEIGHT-10, status4, CSIColor.YELLOW);
-      csi.print(5, SCREEN_HEIGHT-11, status3, CSIColor.YELLOW);
-      csi.print(5, SCREEN_HEIGHT-12, status2, CSIColor.YELLOW);
-      csi.print(5, SCREEN_HEIGHT-13, status1, CSIColor.YELLOW);
+      csi.print(5, SCREEN_HEIGHT-10, status4, CSIColor.GRAY);
+
+      csi.print(5, SCREEN_HEIGHT-11, status3, CSIColor.SPRING_GREEN);
+      csi.print(5+status2.length(), SCREEN_HEIGHT-11, statusHealth, CSIColor.YELLOW);
+
+      csi.print(5, SCREEN_HEIGHT-12, status2, CSIColor.SPRING_GREEN);
+      csi.print(5+status2.length(), SCREEN_HEIGHT-12, Integer.toString(turn), CSIColor.YELLOW);
+
+      csi.print(5, SCREEN_HEIGHT-13, status1, CSIColor.SPRING_GREEN);
+      csi.print(5+status1.length(), SCREEN_HEIGHT-13, name, CSIColor.YELLOW);
 
     }
 
