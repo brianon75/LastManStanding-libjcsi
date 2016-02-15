@@ -9,6 +9,11 @@ import java.util.*;
 
 public class LastManStanding {
 
+  // console screen dimensions -- make static final
+  private static final int SCREEN_WIDTH = 80;
+  private static final int SCREEN_HEIGHT = 24;
+  private static final int SPLASH_DEPTH = 6;
+
   public static void main(String[] args) {
     //ArrayList<Object> LastManStanding = new ArrayList<Object>();
     ArrayList<Item> items = new ArrayList<Item>();
@@ -24,9 +29,11 @@ public class LastManStanding {
 
     int testRuns = 0;
 
+
     Properties text = new Properties();
 		text.setProperty("fontSize","12");
-		text.setProperty("font", "Courier New");
+		//text.setProperty("font", "Courier New");
+    text.setProperty("font", "Ariel");
 		ConsoleSystemInterface csi = null;
 		try{
 			csi = new WSwingConsoleInterface("Last Man Standing", text);
@@ -36,18 +43,34 @@ public class LastManStanding {
 			System.exit(-1);
 		}
 
-
-
           //bad command line argument checking
           if (args.length > 0) {
-                  numRows = Integer.parseInt(args[0]);
-                  numCols = Integer.parseInt(args[1]);
-                  numCreatures = Integer.parseInt(args[2]);
+            numCreatures = Integer.parseInt(args[0]);
+            numRows = Integer.parseInt(args[1]);
+            numCols = Integer.parseInt(args[2]);
           }
 
 
+
+          /* display is SCREEN_WIDTH x 24 MAX */
+          /* our grid space is limited to that - Splash display */
+
+
+          int maxRows = 0;
+          int maxCols = 0;
+
+          // TODO - TOP_LEFT, BOTTOM_RIGHT, etc...
+          // see what we have left
+          maxRows = SCREEN_HEIGHT - SPLASH_DEPTH;
+          maxCols = (SCREEN_WIDTH-20)/2; // keep it a square
+
+          // set numRows to at most ... maxRows
+          numRows = (numRows < maxRows) ? numRows : maxRows;
+          numCols = (numCols < maxCols) ? numCols : maxCols;
+
+          /* TODO - DO WE NEED THESE EMPTY Cells ? */
           // we need to create our grid (dungeon) which we took
-          // as command line args or use a default
+          // as command line args AND modified if too large
           for (int r = 0; r < numRows; r++) {
             for (int c = 0; c < numCols; c++) {
               // add a blank cell that will be displayed as " "
@@ -57,6 +80,7 @@ public class LastManStanding {
           //System.out.println("Elements of ArrayList of Cell Type: " + cells);
 
           /* test --- add some creatures */
+          /* TODO - make creatures based on game Level */
           cells.set(XYCoordinate.xyCoordToList(0,0, numRows), new Cell(0,0, new Goblin("Goblin1", 100, 90, 20, 10, true, "G")));
           cells.set(XYCoordinate.xyCoordToList(0,1, numRows), new Cell(0,1, new Goblin("Goblin2", 100, 30, 70, 10, true, "G")));
           cells.set(XYCoordinate.xyCoordToList(3,8, numRows), new Cell(3,8, new Goblin("Goblin3", 100, 60, 89, 10, true, "G")));
@@ -74,6 +98,8 @@ public class LastManStanding {
           int strength = 0;
           int agility = 0;
           int luck = 0;
+          Creature.Movement cm = Creature.Movement.UP; // for storing movement of user character
+          CharKey dir;
 
           String agilityQ = new String("");
           String name;
@@ -127,20 +153,19 @@ public class LastManStanding {
             bot = true;
           }
 
+          /* create the User Character */
+          cells.set(XYCoordinate.xyCoordToList(6,9, numRows), new Cell(6,9, new Human(name, 100, strength, agility, luck, bot, "@")));
+          //cells.set(XYCoordinate.xyCoordToList(6,9, numRows), new Cell(6,9, new Human(name, 100, strength, agility, luck, false, "H")));
 
-          csi.print((int)(80-startMessage.length()) / 2, 18, startMessage, CSIColor.BRIGHT_PINK);
+          // print the Start Game Message and wait for user input
+          csi.print((int)(SCREEN_WIDTH-startMessage.length()) / 2, 18, startMessage, CSIColor.BRIGHT_PINK);
           csi.refresh();
-
           CharKey tempWait = csi.inkey();
 
           // clear the screen in preperation to display the grid
           csi.cls();
           displaySplash(csi, 0);
           csi.refresh();
-
-          //cells.set(XYCoordinate.xyCoordToList(6,9, numRows), new Cell(6,9, new Human(name, 100, strength, agility, luck, false, "H")));
-          cells.set(XYCoordinate.xyCoordToList(6,9, numRows), new Cell(6,9, new Human(name, 100, strength, agility, luck, bot, "@")));
-
 
           /*******************/
           /* CORE LOGIC LOOP */
@@ -149,9 +174,13 @@ public class LastManStanding {
           int listIndex;
           char c;
 
+          // setup grid outline
+          displayGridOutline(csi, numRows, numCols, cells);
+
           do {
             //System.out.println("CORE START");
             displayGrid(numRows, numCols, cells);
+            displayGrid(csi, numRows, numCols, cells);
 
             // make sure we dump old entries
             creatureCells.clear();
@@ -187,14 +216,31 @@ public class LastManStanding {
                     cellElement.getCreature().getLuck(), cellElement.getCreature().getHealth());
 
                   do { // discover a valid move for this cell
-                    System.out.printf("\nPlease make your move ['U' 'D' 'L' 'R' 'H'] : ");
-                    scanner = new Scanner(System.in);
-                    c = Character.toUpperCase(scanner.next(".").charAt(0));
 
-                    //System.out.printf("YOU selected movement of %s\n", c);
+                			//csi.cls();
+                			//csi.print(x,y, '@', CSIColor.WHITE);
+                			//csi.print(x,y, 'H', CSIColor.CYAN);
+                			//csi.print(x,y, "HELP", CSIColor.CYAN);
+                			//csi.print(x+1,y+1, "HELP", CSIColor.CYAN);
 
-                    xy = cellElement.attemptManualMove(charToCharacterMove(c));
+                			dir = csi.inkey();
+                			if(dir.isUpArrow()){
+                				cm = Creature.Movement.UP;
+                			}
+                			if(dir.isDownArrow()){
+                				cm = Creature.Movement.DOWN;
+                			}
+                			if(dir.isLeftArrow()){
+                				cm = Creature.Movement.LEFT;
+                			}
+                			if(dir.isRightArrow()){
+                				cm = Creature.Movement.RIGHT;
+                			}
+                			if(dir.code == CharKey.H){
+                				cm = Creature.Movement.HOLD;
+                			}
 
+                    xy = cellElement.attemptManualMove(cm);
                     // make sure it is valid / in bounds
                   } while (xy.getX() < 0 || xy.getY() < 0 || xy.getX() >= numRows || xy.getY() >= numCols); // what about walls !?
 
@@ -355,30 +401,30 @@ public class LastManStanding {
     String stitle = new String ("2016");
 
     // title
-    csi.print((int)(80-line1.length()) / 2, y, line1, CSIColor.DARK_RED);
-    csi.print((int)(80-line2.length()) / 2 ,y+1, line2, CSIColor.RED);
-    csi.print((int)(80-line3.length()) / 2, y+2, line3, CSIColor.YELLOW);
-    csi.print((int)(80-line4.length()) / 2, y+3, line4, CSIColor.GREEN);
-    csi.print((int)(80-line5.length()) / 2, y+4, line5, CSIColor.BLUE);
-    csi.print((int)(80-line6.length()) / 2, y+5, line6, CSIColor.DARK_BLUE);
-    csi.print((int)(80-line7.length()) / 2, y+6, line7, CSIColor.PURPLE);
-    csi.print((int)(80-title.length()) / 2, y+23, title, CSIColor.GRAY);
-    csi.print((int)(80-stitle.length()) / 2, y+24, stitle, CSIColor.WHITE);
+    csi.print((int)(SCREEN_WIDTH-line1.length()) / 2, y, line1, CSIColor.DARK_RED);
+    csi.print((int)(SCREEN_WIDTH-line2.length()) / 2 ,y+1, line2, CSIColor.RED);
+    csi.print((int)(SCREEN_WIDTH-line3.length()) / 2, y+2, line3, CSIColor.YELLOW);
+    csi.print((int)(SCREEN_WIDTH-line4.length()) / 2, y+3, line4, CSIColor.GREEN);
+    csi.print((int)(SCREEN_WIDTH-line5.length()) / 2, y+4, line5, CSIColor.BLUE);
+    csi.print((int)(SCREEN_WIDTH-line6.length()) / 2, y+5, line6, CSIColor.DARK_BLUE);
+    csi.print((int)(SCREEN_WIDTH-line7.length()) / 2, y+6, line7, CSIColor.PURPLE);
+    csi.print((int)(SCREEN_WIDTH-title.length()) / 2, y+23, title, CSIColor.GRAY);
+    csi.print((int)(SCREEN_WIDTH-stitle.length()) / 2, y+SCREEN_HEIGHT, stitle, CSIColor.WHITE);
     csi.refresh();
 
     CharKey dir = csi.inkey();
     /*for (int i = 0; i < 25; i++) {
       csi.cls();
       y+= i;
-      csi.print((int)(80-line1.length()) / 2, y, line1, CSIColor.DARK_RED);
-      csi.print((int)(80-line2.length()) / 2 ,y+1, line2, CSIColor.RED);
-      csi.print((int)(80-line3.length()) / 2, y+2, line3, CSIColor.YELLOW);
-      csi.print((int)(80-line4.length()) / 2, y+3, line4, CSIColor.GREEN);
-      csi.print((int)(80-line5.length()) / 2, y+4, line5, CSIColor.BLUE);
-      csi.print((int)(80-line6.length()) / 2, y+5, line6, CSIColor.DARK_BLUE);
-      csi.print((int)(80-line7.length()) / 2, y+6, line7, CSIColor.PURPLE);
-      csi.print((int)(80-title.length()) / 2, y+23, title, CSIColor.GRAY);
-      csi.print((int)(80-stitle.length()) / 2, y+24, stitle, CSIColor.WHITE);
+      csi.print((int)(SCREEN_WIDTH-line1.length()) / 2, y, line1, CSIColor.DARK_RED);
+      csi.print((int)(SCREEN_WIDTH-line2.length()) / 2 ,y+1, line2, CSIColor.RED);
+      csi.print((int)(SCREEN_WIDTH-line3.length()) / 2, y+2, line3, CSIColor.YELLOW);
+      csi.print((int)(SCREEN_WIDTH-line4.length()) / 2, y+3, line4, CSIColor.GREEN);
+      csi.print((int)(SCREEN_WIDTH-line5.length()) / 2, y+4, line5, CSIColor.BLUE);
+      csi.print((int)(SCREEN_WIDTH-line6.length()) / 2, y+5, line6, CSIColor.DARK_BLUE);
+      csi.print((int)(SCREEN_WIDTH-line7.length()) / 2, y+6, line7, CSIColor.PURPLE);
+      csi.print((int)(SCREEN_WIDTH-title.length()) / 2, y+23, title, CSIColor.GRAY);
+      csi.print((int)(SCREEN_WIDTH-stitle.length()) / 2, y+SCREEN_HEIGHT, stitle, CSIColor.WHITE);
       csi.refresh();
       try {
         Thread.sleep(550);
@@ -408,14 +454,76 @@ public class LastManStanding {
       csi.refresh();
     }
 
+    public static void displayGridOutline(ConsoleSystemInterface csi, int numRows, int numCols, ArrayList<Cell> cells) {
+
+      /*****************************************/
+      // 2d Array - x is rows y is Collections
+      // CSI.print (x - Col, y Row)
+      /*****************************************/
+
+      // where do we want to position the grid ?
+      int topSide = SPLASH_DEPTH + 2;
+      int leftSide = (SCREEN_WIDTH / 2) - (numCols / 2);
+
+      System.out.println(leftSide + " " + topSide);
+      // 35 + 7
+
+      /* first - create grid outline */
+      for (int r = leftSide-1; r <= leftSide+numCols; r++) {
+        //csi.print(r, topSide, "#", CSIColor.BROWN);
+        for (int c = topSide-1; c <= topSide+numRows; c++) {
+        csi.print(r, c, "#", CSIColor.BROWN);
+        }
+      }
+      csi.refresh();
+
+      /*
+            System.out.println(leftSide + (leftSide+numCols));
+            for (int r = leftSide; r < leftSide+numCols; r++) {
+              for (int c = 1; c < numRows; c++) {
+              csi.print(r, topSide+c, " ", CSIColor.BROWN);
+              }
+            }*/
+    }
     public static void displayGrid(ConsoleSystemInterface csi, int numRows, int numCols, ArrayList<Cell> cells) {
 
-      for (int r = 0; r < numRows; r++) {
-        System.out.printf("\n");
+      // where do we want to position the grid ?
+      int topSide = SPLASH_DEPTH + 2;
+      int leftSide = (SCREEN_WIDTH / 2) - (numCols / 2);
+
+      /*****************************************/
+      // 2d Array - x is rows y is Collections
+      // CSI.print (x - Col, y Row)
+      /*****************************************/
+
+
+      for (Cell cellElement : cells) {
+        if (!cellElement.getIsEmpty()) {
+          if (cellElement.getCreature().getIsAlive()) {
+            csi.print(cellElement.getYPos()+leftSide, cellElement.getXPos()+topSide, cellElement.getDisplay(), CSIColor.PINK);
+            if (!cellElement.getCreature().getIsBot()) {
+              displayUserStats(csi, cellElement.getCreature().getName(), 0, cellElement.getCreature().getHealth(),
+                cellElement.getCreature().getAgility(), cellElement.getCreature().getStrength());
+              }
+          } else {
+            csi.print(cellElement.getYPos()+leftSide, cellElement.getXPos()+topSide, "x", CSIColor.GRAY);
+          }
+        } else {
+          csi.print(cellElement.getYPos()+leftSide, cellElement.getXPos()+topSide, ".", CSIColor.GRAY);
+        }
+      }
+      csi.refresh();
+
+
+
+
+      /*for (int r = 0; r < numRows; r++) {
+
         for (int c = 0; c < numCols; c++) {
           if (!cells.get(XYCoordinate.xyCoordToList(r,c, numRows)).getIsEmpty()) {
             if (cells.get(XYCoordinate.xyCoordToList(r,c, numRows)).getCreature().getIsAlive()) {
               System.out.printf("|%s|", cells.get(XYCoordinate.xyCoordToList(r,c, numRows)).getDisplay());
+              csi.print(r, topSide+c, cells.get(XYCoordinate.xyCoordToList(r,c, numRows)).getDisplay(), CSIColor.PINK);
             } else {
                 System.out.printf("| |"); // DEAD
             }
@@ -425,29 +533,46 @@ public class LastManStanding {
           }
         }
       }
-      System.out.printf("\n");
+      System.out.printf("\n");*/
 
     }
 
-    public static String askQuestionStr(ConsoleSystemInterface csi, String q, int screenDepth) {
+    public static String askQuestionStr(ConsoleSystemInterface csi, String q, int SCREEN_HEIGHT) {
 
-      //csi.print(0, screenDepth, q, CSIColor.GRAY);
-      csi.locateCaret(q.length(), screenDepth);
+      //csi.print(0, SCREEN_HEIGHT, q, CSIColor.GRAY);
+      csi.locateCaret(q.length(), SCREEN_HEIGHT);
 
       String answer = csi.input();
       csi.refresh();
       return answer;
     }
 
-    public static int askQuestionInt(ConsoleSystemInterface csi, String q, int screenDepth) {
+    public static int askQuestionInt(ConsoleSystemInterface csi, String q, int SCREEN_HEIGHT) {
 
-      //csi.print(0, screenDepth, q, CSIColor.GRAY);
-      csi.locateCaret(q.length(), screenDepth);
+      //csi.print(0, SCREEN_HEIGHT, q, CSIColor.GRAY);
+      csi.locateCaret(q.length(), SCREEN_HEIGHT);
 
       String answer = csi.input();
       csi.refresh();
       return Integer.parseInt(answer);
     }
+
+    public static void displayUserStats(ConsoleSystemInterface csi, String name, int turn, int health, int agility, int strength) {
+
+
+
+      String status1 = new String(String.format("Hero   : %s", name));
+      String status2 = new String(String.format("Turn   : %d", turn));
+      String status3 = new String(String.format("Health : %d", health));
+
+      // position ... bottom LEFT
+      csi.print(1, SCREEN_HEIGHT, status3, CSIColor.YELLOW);
+      csi.print(1, SCREEN_HEIGHT-1, status2, CSIColor.YELLOW);
+      csi.print(1, SCREEN_HEIGHT-2, status1, CSIColor.YELLOW);
+
+    }
+
+
 
 
 }
