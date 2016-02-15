@@ -81,12 +81,12 @@ public class LastManStanding {
 
           /* test --- add some creatures */
           /* TODO - make creatures based on game Level */
-          cells.set(XYCoordinate.xyCoordToList(0,0, numRows), new Cell(0,0, new Goblin("Goblin1", 100, 90, 20, 10, true, "G")));
-          cells.set(XYCoordinate.xyCoordToList(0,1, numRows), new Cell(0,1, new Goblin("Goblin2", 100, 30, 70, 10, true, "G")));
-          cells.set(XYCoordinate.xyCoordToList(3,8, numRows), new Cell(3,8, new Goblin("Goblin3", 100, 60, 89, 10, true, "G")));
-          cells.set(XYCoordinate.xyCoordToList(1,4, numRows), new Cell(1,4, new Human("Human1", 100, 60, 35, 10, true, "H")));
-          cells.set(XYCoordinate.xyCoordToList(2,2, numRows), new Cell(2,2, new Zombie("Zombie1", 100, 60, 56, 10, true, "Z")));
-          cells.set(XYCoordinate.xyCoordToList(5,2, numRows), new Cell(5,2, new Zombie("Zombie2", 100, 60, 11, 10, true, "Z")));
+          cells.set(XYCoordinate.xyCoordToList(0,0, numRows), new Cell(0,0, new Goblin("Goblin01", 100, 90, 20, 10, true, "G")));
+          cells.set(XYCoordinate.xyCoordToList(0,1, numRows), new Cell(0,1, new Goblin("Goblin022", 100, 30, 70, 10, true, "G")));
+          cells.set(XYCoordinate.xyCoordToList(3,8, numRows), new Cell(3,8, new Goblin("Goblin03", 100, 60, 89, 10, true, "G")));
+          cells.set(XYCoordinate.xyCoordToList(1,4, numRows), new Cell(1,4, new Human("Human01", 100, 60, 35, 10, true, "H")));
+          cells.set(XYCoordinate.xyCoordToList(2,2, numRows), new Cell(2,2, new Zombie("Zombie01", 100, 60, 56, 10, true, "Z")));
+          cells.set(XYCoordinate.xyCoordToList(5,2, numRows), new Cell(5,2, new Zombie("Zombie02", 100, 60, 11, 10, true, "Z")));
 
 
           /**************/
@@ -180,7 +180,7 @@ public class LastManStanding {
           do {
             //System.out.println("CORE START");
             displayGrid(numRows, numCols, cells);
-            displayGrid(csi, numRows, numCols, cells);
+            displayGrid(csi, numRows, numCols, turnNumber, cells);
 
             // make sure we dump old entries
             creatureCells.clear();
@@ -320,19 +320,13 @@ public class LastManStanding {
               System.out.println(element);
             }
 
-            System.out.println("\noooooo   oooooo     oooo ooooo ooooo      ooo ooooo      ooo oooooooooooo ooooooooo.   ");
-            System.out.println(" `888.    `888.     .8'  `888' `888b.     `8' `888b.     `8' `888'     `8 `888   `Y88. ");
-            System.out.println("  `888.   .8888.   .8'    888   8 `88b.    8   8 `88b.    8   888          888   .d88' ");
-            System.out.println("   `888  .8'`888. .8'     888   8   `88b.  8   8   `88b.  8   888oooo8     888ooo88P'  ");
-            System.out.println("    `888.8'  `888.8'      888   8     `88b.8   8     `88b.8   888    \"     888`88b.    ");
-            System.out.println("     `888'    `888'       888   8       `888   8       `888   888       o  888  `88b.  ");
-            System.out.println("      `8'      `8'       o888o o8o        `8  o8o        `8  o888ooooood8 o888o  o888o ");
-
             System.out.printf("\n...in %d Turns.", turnNumber);
 
             // print off the winner if there was one.
             if (creatureCells.size() > 0) {
               System.out.println(creatureCells.get(0).getCreature().toString());
+              System.out.println(creatureCells.get(0).getCreature().getName());
+              displayWinner(csi, creatureCells.get(0).getCreature().getName());
             } else {
               System.out.println("Everybody died.");
             }
@@ -389,7 +383,6 @@ public class LastManStanding {
 
   public static void displaySplash(ConsoleSystemInterface csi, int depth) {
     // positioning for banner
-    int y = depth;
     String line1 = new String("ooooo        ooo        ooooo  .oooooo..o ");
     String line2 = new String("`888'        `88.       .888' d8P'    `Y8 ");
     String line3 = new String(" 888          888b     d'888  Y88bo.      ");
@@ -401,18 +394,18 @@ public class LastManStanding {
     String stitle = new String ("2016");
 
     // title
-    csi.print((int)(SCREEN_WIDTH-line1.length()) / 2, y, line1, CSIColor.DARK_RED);
-    csi.print((int)(SCREEN_WIDTH-line2.length()) / 2 ,y+1, line2, CSIColor.RED);
-    csi.print((int)(SCREEN_WIDTH-line3.length()) / 2, y+2, line3, CSIColor.YELLOW);
-    csi.print((int)(SCREEN_WIDTH-line4.length()) / 2, y+3, line4, CSIColor.GREEN);
-    csi.print((int)(SCREEN_WIDTH-line5.length()) / 2, y+4, line5, CSIColor.BLUE);
-    csi.print((int)(SCREEN_WIDTH-line6.length()) / 2, y+5, line6, CSIColor.DARK_BLUE);
-    csi.print((int)(SCREEN_WIDTH-line7.length()) / 2, y+6, line7, CSIColor.PURPLE);
-    csi.print((int)(SCREEN_WIDTH-title.length()) / 2, y+23, title, CSIColor.GRAY);
-    csi.print((int)(SCREEN_WIDTH-stitle.length()) / 2, y+SCREEN_HEIGHT, stitle, CSIColor.WHITE);
+    csi.print((int)(SCREEN_WIDTH-line1.length()) / 2, depth, line1, CSIColor.DARK_RED);
+    csi.print((int)(SCREEN_WIDTH-line2.length()) / 2 ,depth+1, line2, CSIColor.RED);
+    csi.print((int)(SCREEN_WIDTH-line3.length()) / 2, depth+2, line3, CSIColor.YELLOW);
+    csi.print((int)(SCREEN_WIDTH-line4.length()) / 2, depth+3, line4, CSIColor.GREEN);
+    csi.print((int)(SCREEN_WIDTH-line5.length()) / 2, depth+4, line5, CSIColor.BLUE);
+    csi.print((int)(SCREEN_WIDTH-line6.length()) / 2, depth+5, line6, CSIColor.DARK_BLUE);
+    csi.print((int)(SCREEN_WIDTH-line7.length()) / 2, depth+6, line7, CSIColor.PURPLE);
+    csi.print((int)(SCREEN_WIDTH-title.length()) / 2, depth+23, title, CSIColor.GRAY);
+    csi.print((int)(SCREEN_WIDTH-stitle.length()) / 2, depth+SCREEN_HEIGHT, stitle, CSIColor.WHITE);
     csi.refresh();
 
-    CharKey dir = csi.inkey();
+    //CharKey dir = csi.inkey();
     /*for (int i = 0; i < 25; i++) {
       csi.cls();
       y+= i;
@@ -434,6 +427,17 @@ public class LastManStanding {
     }
 */
     }
+
+    public static void displayWinner(ConsoleSystemInterface csi, String name) {
+      // title
+      String line1 = new String("Winner");
+      String line2 = new String(name);
+
+      csi.print((int)(SCREEN_WIDTH-line1.length()) / 2, SCREEN_HEIGHT-4, "Winner", CSIColor.DARK_RED);
+      csi.print((int)(SCREEN_WIDTH-line2.length()) / 2, SCREEN_HEIGHT-3, name, CSIColor.WHITE);
+
+      csi.refresh();
+      }
 
     public static void displayCharacterCreation(ConsoleSystemInterface csi, int depth, int skillPoints) {
 
@@ -485,7 +489,7 @@ public class LastManStanding {
               }
             }*/
     }
-    public static void displayGrid(ConsoleSystemInterface csi, int numRows, int numCols, ArrayList<Cell> cells) {
+    public static void displayGrid(ConsoleSystemInterface csi, int numRows, int numCols, int turn, ArrayList<Cell> cells) {
 
       // where do we want to position the grid ?
       int topSide = SPLASH_DEPTH + 2;
@@ -499,12 +503,12 @@ public class LastManStanding {
 
       for (Cell cellElement : cells) {
         if (!cellElement.getIsEmpty()) {
+          if (!cellElement.getCreature().getIsBot()) {
+            displayUserStats(csi, cellElement.getCreature().getName(), turn, cellElement.getCreature().getHealth(),
+            cellElement.getCreature().getAgility(), cellElement.getCreature().getStrength(), cellElement.getCreature().getLuck());
+          }
           if (cellElement.getCreature().getIsAlive()) {
             csi.print(cellElement.getYPos()+leftSide, cellElement.getXPos()+topSide, cellElement.getDisplay(), CSIColor.PINK);
-            if (!cellElement.getCreature().getIsBot()) {
-              displayUserStats(csi, cellElement.getCreature().getName(), 0, cellElement.getCreature().getHealth(),
-                cellElement.getCreature().getAgility(), cellElement.getCreature().getStrength());
-              }
           } else {
             csi.print(cellElement.getYPos()+leftSide, cellElement.getXPos()+topSide, "x", CSIColor.GRAY);
           }
@@ -557,18 +561,17 @@ public class LastManStanding {
       return Integer.parseInt(answer);
     }
 
-    public static void displayUserStats(ConsoleSystemInterface csi, String name, int turn, int health, int agility, int strength) {
-
-
-
+    public static void displayUserStats(ConsoleSystemInterface csi, String name, int turn, int health, int agility, int strength, int luck) {
       String status1 = new String(String.format("Hero   : %s", name));
       String status2 = new String(String.format("Turn   : %d", turn));
       String status3 = new String(String.format("Health : %d", health));
+      String status4 = new String(String.format("A %d: S : %d, L : %d", agility, strength, luck));
 
       // position ... bottom LEFT
-      csi.print(1, SCREEN_HEIGHT, status3, CSIColor.YELLOW);
-      csi.print(1, SCREEN_HEIGHT-1, status2, CSIColor.YELLOW);
-      csi.print(1, SCREEN_HEIGHT-2, status1, CSIColor.YELLOW);
+      csi.print(5, SCREEN_HEIGHT-10, status4, CSIColor.YELLOW);
+      csi.print(5, SCREEN_HEIGHT-11, status3, CSIColor.YELLOW);
+      csi.print(5, SCREEN_HEIGHT-12, status2, CSIColor.YELLOW);
+      csi.print(5, SCREEN_HEIGHT-13, status1, CSIColor.YELLOW);
 
     }
 
